@@ -11,7 +11,16 @@ uint32_t* page_directory;
 void vmm_init()
 {
     // allocate the page directory
-    page_directory = (uint32_t*)(uintptr_t)pmm_alloc_page();
+
+    uint32_t page_directory_addr = pmm_alloc_page();
+
+    if (page_directory_addr == PMM_ERROR)
+    {
+        kprintf(ERROR, "VMM: PMM failed; can't continue!");
+        return;
+    }
+
+    page_directory = (uint32_t*)(uintptr_t)page_directory_addr;
 
     // empty out
     for (int i = 0; i < 1024; i++)
@@ -24,31 +33,42 @@ void vmm_init()
 
 void vmm_create_page_table(uint32_t directory_index, bool kernel)
 {
-    if (directory_index > 1024)
+    if (directory_index >= 1024)
     {
-        kprintf(WARN, "VMM: Cant create page table %u!\n");
+        kprintf(WARN, "VMM: Cant create page table %u!\n", directory_index);
+        return;
     }
 
     uint32_t page_table_addr = pmm_alloc_page();
+
+    if (page_table_addr == PMM_ERROR)
+    {
+        kprintf(ERROR, "VMM: PMM failed; can't continue!\n");
+        return;
+    }
+
     uint32_t* page_table = (uint32_t*)(uintptr_t)page_table_addr;
 
-    page_directory[directory_index] = page_table_addr | (0x3 | (kernel << 2)); // set supervisor if kernel mode
+    // init page table
+    for (int i = 0; i < 1024; i++)
+    {
+        page_table[i] = 0;
+    }
+
+    // assign page table
+    page_directory[directory_index] = page_table_addr | (0x3 | (!kernel << 2));
 }
 
 
 void vmm_auto_map_page(uint32_t phys, uint32_t virt, uint32_t flags, bool kernel)
 {
-
-    // im not merging these if statements for obvious reasons
-    if (page_directory[DIRECTORY_INDEX(virt)] & 0x1) // page table doesnt exist
+    if (page_directory[DIRECTORY_INDEX(virt)] & 0x1 || (((page_directory[DIRECTORY_INDEX(virt)] & 0x4) > 0) != kernel)) // page table doesnt exist or wrong mode
     {
         vmm_create_page_table(DIRECTORY_INDEX(virt), kernel);
     }
 
-    else if (((page_directory[DIRECTORY_INDEX(virt)] & 0x4) > 0) != kernel) // page table has different mode
-    {
-        vmm_create_page_table(DIRECTORY_INDEX(virt), kernel);
-    }
+    uint32_t* page_table = (uint32_t*)(uintptr_t)page_directory[DIRECTORY_INDEX(virt)];
+
 }
 
 void vmm_map_addresses(uint32_t start, uint32_t vstart, uint32_t length, uint32_t flags, bool kernel)
