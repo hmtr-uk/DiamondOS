@@ -1,0 +1,9 @@
+.sconsign*.dblite
+.cache/
+compile_commands.json
+rebuild.txt
+
+toolchain/
+build/
+dist/
+
