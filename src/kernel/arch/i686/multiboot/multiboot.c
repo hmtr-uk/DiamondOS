@@ -11,6 +11,8 @@ void multiboot_parse(multiboot_info_t* info)
 {
     boot_info_t* boot_info = get_boot_info();
 
+    kprintf(INFO, "Multiboot info: 0x%x\n", info->flags);
+
     // memory info
     if (IS_BIT_SET(info->flags, 6))
     {
@@ -18,7 +20,7 @@ void multiboot_parse(multiboot_info_t* info)
     }
     else
     {
-        kernel_panic("Boot cannot continue safely!\nMemory map info is not found.");
+        boot_panic("Boot cannot continue safely!\nMemory map info is not found.");
     }
 
     // i dont want to use basic memory info, because its SHIT.

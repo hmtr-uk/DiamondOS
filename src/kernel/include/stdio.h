@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 typedef enum
 {
@@ -43,3 +44,4 @@ void printf(const char* fmt, ...);
 void print_buffer(const char* msg, const void* buffer, uint32_t count);
 
 void kprintf(log_level_t level, const char* fmt, ...);
+void vprintf(const char* fmt, va_list args);

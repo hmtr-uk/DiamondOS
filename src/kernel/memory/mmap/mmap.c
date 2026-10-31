@@ -19,7 +19,7 @@ void mmap_register_firmware_region(uint64_t addr, uint64_t length, uint32_t type
 {
     if (firmware_region_count >= MMAP_MAX_FIRMWARE_REGIONS)
     {
-        kernel_panic("Boot cannot continue safely!\nThe memory map can't be finished, or it'll overflow!"); // wont return
+        boot_panic("Boot cannot continue safely!\nThe firmware memory map can't be finished, or it'll overflow!"); // wont return
     }
 
     if (type > 5 || type < 1)
@@ -48,7 +48,7 @@ void mmap_register_software_region(uint64_t addr, uint64_t length, uint32_t type
 {
     if (software_region_count >= MMAP_MAX_SOFTWARE_REGIONS)
     {
-        kernel_panic("Boot cannot continue safely!\nThe memory map can't be finished, or it'll overflow!"); // wont return
+        boot_panic("Boot cannot continue safely!\nThe software memory map can't be finished, or it'll overflow!"); // wont return
     }
 
     if (type > 5 || type < 1)

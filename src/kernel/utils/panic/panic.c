@@ -1,17 +1,15 @@
 #include "utils/panic/panic.h"
 #include <stdio.h>
 
-__attribute__((noreturn)) void kernel_panic(const char* message)
+void __attribute__((noreturn)) boot_panic(const char* fmt, ...)
 {
-    // Disable interrupts so normal interrupt handlers
-    // cannot run while the kernel is halted.
     __asm__ volatile ("cli");
 
-    set_color(MAKE_COLOR(VGA_WHITE, VGA_RED));
-    clrscr();
+    va_list args;
+    va_start(args, fmt);
 
-    puts("KERNEL PANIC!\n\n");
-    puts(message);
+    kprintf(FATAL, "KERNEL PANIC IN BOOT:\n\n");
+    vprintf(fmt, args);
 
     for (;;)
         __asm__ volatile ("hlt");

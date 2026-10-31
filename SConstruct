@@ -53,9 +53,6 @@ def clean_build():
     if os.path.exists("build"):
         print("[+] Deleting previous build")
         run_silent(["rm", "-rf", "build"])
-    if os.path.exists("dist"):
-        print("[+] Deleting previous dist")
-        run_silent(["rm", "-rf", "dist"])
 
 def cp(src, dest, silent=False):
     run_silent(["cp", src, dest], silent=silent, check=True)
@@ -79,6 +76,11 @@ if "s" in COMMAND_LINE_TARGETS:
     clean_build()
     result = subprocess.run(["scons"], check=False)
     Exit(result.returncode)
+
+
+if os.path.exists("dist"):
+    print("[+] Deleting previous dist")
+    run_silent(["rm", "-rf", "dist"])
 
 ###############################################
 # Packages
@@ -131,18 +133,6 @@ def ensure_dependencies():
             uninstalled.append(package)
     if uninstalled:
         install_packages(*uninstalled)
-
-###############################################
-# File copying
-###############################################
-COPY_RULES = (
-    ("boot/grub.cfg", "build/fs/boot/grub/grub.cfg"),
-)
-
-def copy_files():
-    for rule in COPY_RULES:
-        cp(rule[0], rule[1], silent=True)
-        print(f"[>]\t{rule[0]:<50} --> {rule[1]}")
 
 ###############################################
 # discover sources
@@ -233,6 +223,8 @@ def link_kernel(target, source, env):
         "-lgcc",
     ], check=True, silent=True)
 
+    run_silent(["toolchain/i686-elf/bin/i686-elf-strip", "--strip-debug", str(target[0])])
+
     print(f"LD   {'...':<50} --> {target[0]}")
 
     return 0
@@ -244,9 +236,12 @@ asm_sources, c_sources = discover_sources()
 objects = []
 
 for source in asm_sources:
+    target = object_path(source)
+    target = target.rsplit(".", 1)[0] + "_asm.o"
+
     objects.append(
         Command(
-            object_path(source),
+            target,
             source,
             compile_asm,
         )

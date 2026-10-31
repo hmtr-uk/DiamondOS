@@ -6,4 +6,6 @@ rebuild.txt
 toolchain/
 build/
 dist/
+bochs*
 
+bx_enh_dbg.ini
